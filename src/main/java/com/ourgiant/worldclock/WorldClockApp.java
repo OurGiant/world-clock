@@ -2,6 +2,7 @@ package com.ourgiant.worldclock;
 
 import javax.swing.*;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import com.ourgiant.worldclock.WeatherService.WeatherData;
 
 import java.awt.*;
@@ -211,6 +212,7 @@ public class WorldClockApp {
     public static void main(String[] args) {
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
+        FlatDarkLaf.setup();
         SwingUtilities.invokeLater(() -> {
             WorldClockApp app = new WorldClockApp();
             app.initializeUI();

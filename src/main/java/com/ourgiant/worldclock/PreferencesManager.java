@@ -1,6 +1,8 @@
 package com.ourgiant.worldclock;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,6 +17,8 @@ import java.util.List;
  * Manages application preferences and persists them to a JSON file.
  */
 public class PreferencesManager {
+    private static final Logger logger = LoggerFactory.getLogger(PreferencesManager.class);
+
     private static final Path PREFS_DIR = Paths.get(System.getProperty("user.home"), ".worldclock");
     private static final String PREFS_FILE = "preferences.json";
     private static final Path PREFS_PATH = PREFS_DIR.resolve(PREFS_FILE);
@@ -49,7 +53,7 @@ public class PreferencesManager {
                             ZoneId.of(zone);
                             zones.add(zone);
                         } catch (ZoneRulesException e) {
-                            System.err.println("Invalid timezone in preferences: " + zone + ". Using default.");
+                            logger.warn("Invalid timezone in preferences: {}. Using default.", zone);
                         }
                     }
                     
@@ -60,7 +64,7 @@ public class PreferencesManager {
                 }
             }
         } catch (IOException | org.json.JSONException e) {
-            System.err.println("Error loading preferences: " + e.getMessage());
+            logger.error("Error loading preferences: {}", e.getMessage());
         }
 
         // Return defaults if file doesn't exist, is invalid, or contained no valid zones
@@ -97,7 +101,7 @@ public class PreferencesManager {
             
             return true;
         } catch (IOException e) {
-            System.err.println("Error saving preferences: " + e.getMessage());
+            logger.error("Error saving preferences: {}", e.getMessage());
             return false;
         }
     }
@@ -124,7 +128,7 @@ public class PreferencesManager {
                 }
             }
         } catch (IOException | org.json.JSONException e) {
-            System.err.println("Error loading display seconds preference: " + e.getMessage());
+            logger.error("Error loading display seconds preference: {}", e.getMessage());
         }
 
         return DEFAULT_DISPLAY_SECONDS;
@@ -145,7 +149,7 @@ public class PreferencesManager {
                 }
             }
         } catch (IOException | org.json.JSONException e) {
-            System.err.println("Error loading API key: " + e.getMessage());
+            logger.error("Error loading API key: {}", e.getMessage());
         }
 
         return DEFAULT_API_KEY;
@@ -166,7 +170,7 @@ public class PreferencesManager {
                 }
             }
         } catch (IOException | org.json.JSONException e) {
-            System.err.println("Error loading current location: " + e.getMessage());
+            logger.error("Error loading current location: {}", e.getMessage());
         }
 
         return DEFAULT_CURRENT_LOCATION;
@@ -202,7 +206,7 @@ public class PreferencesManager {
             
             return true;
         } catch (IOException e) {
-            System.err.println("Error saving preferences: " + e.getMessage());
+            logger.error("Error saving preferences: {}", e.getMessage());
             return false;
         }
     }
