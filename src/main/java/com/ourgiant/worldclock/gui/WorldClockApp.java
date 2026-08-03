@@ -6,6 +6,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.ourgiant.worldclock.core.HolidayService;
 import com.ourgiant.worldclock.core.PreferencesManager;
 import com.ourgiant.worldclock.core.WeatherService;
+import com.ourgiant.worldclock.util.AppVersion;
 
 import java.awt.*;
 import java.time.ZoneId;
@@ -41,7 +42,7 @@ public class WorldClockApp {
     }
 
     private void initializeUI() {
-        frame = new JFrame("World Clock");
+        frame = new JFrame("World Clock v" + AppVersion.resolve());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setResizable(true);
