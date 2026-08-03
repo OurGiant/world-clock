@@ -1,9 +1,11 @@
-package com.ourgiant.worldclock;
+package com.ourgiant.worldclock.gui;
 
 import javax.swing.*;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import com.ourgiant.worldclock.WeatherService.WeatherData;
+import com.ourgiant.worldclock.core.HolidayService;
+import com.ourgiant.worldclock.core.PreferencesManager;
+import com.ourgiant.worldclock.core.WeatherService;
 
 import java.awt.*;
 import java.time.ZoneId;

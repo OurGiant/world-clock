@@ -1,6 +1,5 @@
-package com.ourgiant.worldclock;
+package com.ourgiant.worldclock.core;
 
-import javax.swing.*;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,9 +7,9 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Utility class for timezone selection and management.
+ * Catalog of timezone IDs available for selection. Pure domain logic, no Swing dependency.
  */
-public class TimeZoneSelector {
+public class TimezoneCatalog {
     private static final Set<String> COMMON_ZONES = new TreeSet<>();
 
     static {
@@ -44,6 +43,9 @@ public class TimeZoneSelector {
         ));
     }
 
+    private TimezoneCatalog() {
+    }
+
     /**
      * Get sorted list of common timezones
      */
@@ -58,37 +60,5 @@ public class TimeZoneSelector {
         return ZoneId.getAvailableZoneIds().stream()
                 .sorted()
                 .toList();
-    }
-
-    /**
-     * Create a configured JComboBox for timezone selection
-     */
-    public static JComboBox<String> createTimeZoneComboBox() {
-        JComboBox<String> comboBox = new JComboBox<>();
-        
-        // Add common zones first
-        for (String zone : getCommonTimeZones()) {
-            comboBox.addItem(zone);
-        }
-
-        // Set a default selection
-        comboBox.setSelectedItem("UTC");
-
-        return comboBox;
-    }
-
-    /**
-     * Create a JComboBox with all available timezones
-     */
-    public static JComboBox<String> createFullTimeZoneComboBox() {
-        JComboBox<String> comboBox = new JComboBox<>();
-        
-        for (String zone : getAllTimeZones()) {
-            comboBox.addItem(zone);
-        }
-
-        comboBox.setSelectedItem("UTC");
-
-        return comboBox;
     }
 }

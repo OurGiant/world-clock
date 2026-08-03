@@ -1,4 +1,8 @@
-package com.ourgiant.worldclock;
+package com.ourgiant.worldclock.gui;
+
+import com.ourgiant.worldclock.core.HolidayService;
+import com.ourgiant.worldclock.core.TimezoneUtil;
+import com.ourgiant.worldclock.core.WeatherService;
 
 import javax.swing.*;
 import java.awt.*;

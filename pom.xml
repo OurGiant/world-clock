@@ -7,7 +7,7 @@
 
     <groupId>com.worldclock</groupId>
     <artifactId>worldclock</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
     <packaging>jar</packaging>
 
     <name>World Clock</name>
@@ -132,7 +132,7 @@
                             </filters>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.ourgiant.worldclock.WorldClockApp</mainClass>
+                                    <mainClass>com.ourgiant.worldclock.gui.WorldClockApp</mainClass>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">

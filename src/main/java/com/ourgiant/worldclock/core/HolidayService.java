@@ -1,4 +1,4 @@
-package com.ourgiant.worldclock;
+package com.ourgiant.worldclock.core;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
