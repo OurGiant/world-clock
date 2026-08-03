@@ -31,9 +31,11 @@ public class PreferencesManager {
     private static final String DISPLAY_SECONDS_KEY = "displaySeconds";
     private static final String API_NINJA_KEY = "apiNinjaKey";
     private static final String CURRENT_LOCATION = "currentLocation";
+    private static final String LAST_NOTIFIED_UPDATE_VERSION_KEY = "lastNotifiedUpdateVersion";
     private static final boolean DEFAULT_DISPLAY_SECONDS = true;
     private static final String DEFAULT_API_KEY = "";
     private static final String DEFAULT_CURRENT_LOCATION = "38.8909853,-77.026671";
+    private static final String DEFAULT_LAST_NOTIFIED_UPDATE_VERSION = "";
 
     private static Path prefsDir() {
         String override = System.getProperty(PREFS_DIR_OVERRIDE_PROPERTY);
@@ -190,6 +192,61 @@ public class PreferencesManager {
 
         return DEFAULT_CURRENT_LOCATION;
     }    
+
+    /**
+     * Load the version string of the last release the silent startup update check already
+     * notified the user about, so that check doesn't re-notify for the same release every launch.
+     * Returns empty string if not set or preference file doesn't exist.
+     */
+    public static String loadLastNotifiedUpdateVersion() {
+        try {
+            if (Files.exists(prefsPath())) {
+                String content = Files.readString(prefsPath());
+                JSONObject json = new JSONObject(content);
+
+                if (json.has(LAST_NOTIFIED_UPDATE_VERSION_KEY)) {
+                    return json.getString(LAST_NOTIFIED_UPDATE_VERSION_KEY);
+                }
+            }
+        } catch (IOException | org.json.JSONException e) {
+            logger.error("Error loading last notified update version: {}", e.getMessage());
+        }
+
+        return DEFAULT_LAST_NOTIFIED_UPDATE_VERSION;
+    }
+
+    /**
+     * Record that the user has already been notified about {@code version}, so the silent
+     * startup check doesn't show it again on the next launch. Merges into the existing
+     * preferences file rather than overwriting it, unlike {@link #savePreferences}.
+     * Returns true if successful, false otherwise.
+     */
+    public static boolean saveLastNotifiedUpdateVersion(String version) {
+        try {
+            Files.createDirectories(prefsDir());
+
+            JSONObject json = new JSONObject();
+            if (Files.exists(prefsPath())) {
+                json = new JSONObject(Files.readString(prefsPath()));
+            }
+            json.put(LAST_NOTIFIED_UPDATE_VERSION_KEY, version != null ? version : DEFAULT_LAST_NOTIFIED_UPDATE_VERSION);
+
+            Files.writeString(prefsPath(), json.toString(2));
+
+            try {
+                Files.setPosixFilePermissions(prefsPath(),
+                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"));
+            } catch (UnsupportedOperationException e) {
+                // Windows doesn't support POSIX permissions, silently skip
+                // The file is still created with default Windows permissions
+            }
+
+            return true;
+        } catch (IOException | org.json.JSONException e) {
+            logger.error("Error saving last notified update version: {}", e.getMessage());
+            return false;
+        }
+    }
 
     /**
      * Save all preferences (timezones, display settings, and API key).
