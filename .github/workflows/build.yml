@@ -1,13 +1,66 @@
-name: Build and Test
+name: Build and Release
 
 on:
   push:
     branches: [ "main" ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
 
 jobs:
-  test:
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v4
+        with:
+          java-version: '24'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn package
+
+      - name: Get version from pom.xml
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: version
+        run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
+
+      - name: Create app image with jpackage
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          jpackage \
+            --input target/ \
+            --main-jar worldclock-all.jar \
+            --main-class com.ourgiant.worldclock.gui.WorldClockApp \
+            --name "World Clock" \
+            --app-version ${{ steps.version.outputs.version }} \
+            --type app-image \
+            --icon src/packaging/app-icon.ico \
+            --dest installer-output
+
+      - name: Zip app image
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          cd installer-output
+          7z a ../World-Clock-${{ steps.version.outputs.version }}.zip "World Clock"
+
+      - name: Upload Windows artifacts
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: |
+            World-Clock-${{ steps.version.outputs.version }}.zip
+            target/worldclock-all.jar
+
+  build-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,14 +73,121 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run tests
-        run: mvn test
+      - name: Build with Maven
+        run: mvn package
 
-      - name: Build fat jar
-        run: mvn package -DskipTests
+      - name: Get version from pom.xml
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: version
+        run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
 
-      - name: Upload jar artifact
+      - name: Create .deb package with jpackage
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          jpackage \
+            --input target/ \
+            --main-jar worldclock-all.jar \
+            --main-class com.ourgiant.worldclock.gui.WorldClockApp \
+            --name world-clock \
+            --app-version ${{ steps.version.outputs.version }} \
+            --vendor OurGiant \
+            --type deb \
+            --icon src/packaging/linux/app-icon.png \
+            --description "A Swing-based world clock application" \
+            --linux-menu-group "Utility;" \
+            --linux-shortcut \
+            --resource-dir src/packaging/linux \
+            --dest installer-output
+
+      - name: Upload Linux artifacts
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
-          name: worldclock-jar
-          path: target/worldclock-all.jar
+          name: linux-artifacts
+          path: installer-output/*.deb
+
+  build-macos:
+    strategy:
+      matrix:
+        include:
+          - runner: macos-latest
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x64
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v4
+        with:
+          java-version: '24'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn package
+
+      - name: Get version from pom.xml
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: version
+        run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
+
+      - name: Create app image with jpackage
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          jpackage \
+            --input target/ \
+            --main-jar worldclock-all.jar \
+            --main-class com.ourgiant.worldclock.gui.WorldClockApp \
+            --name "World Clock" \
+            --app-version ${{ steps.version.outputs.version }} \
+            --vendor OurGiant \
+            --type app-image \
+            --icon src/packaging/app-icon.icns \
+            --dest app-image-output
+
+      - name: Wrap app image in .dmg with jpackage
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          jpackage \
+            --type dmg \
+            --app-image "app-image-output/World Clock.app" \
+            --name "World Clock" \
+            --app-version ${{ steps.version.outputs.version }} \
+            --dest installer-output
+
+      - name: Rename dmg for this architecture
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          cd installer-output
+          mv *.dmg "World-Clock-${{ steps.version.outputs.version }}-${{ matrix.arch }}.dmg"
+
+      - name: Upload macOS artifacts
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifacts-${{ matrix.arch }}
+          path: installer-output/*.dmg
+
+  release:
+    needs: [ build-windows, build-linux, build-macos ]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          files: release-artifacts/*
+          generate_release_notes: true
