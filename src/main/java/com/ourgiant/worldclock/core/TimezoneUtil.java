@@ -1,4 +1,4 @@
-package com.ourgiant.worldclock;
+package com.ourgiant.worldclock.core;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

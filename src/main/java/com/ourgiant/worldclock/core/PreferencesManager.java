@@ -1,4 +1,4 @@
-package com.ourgiant.worldclock;
+package com.ourgiant.worldclock.core;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;

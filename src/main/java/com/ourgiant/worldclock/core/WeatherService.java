@@ -1,4 +1,4 @@
-package com.ourgiant.worldclock;
+package com.ourgiant.worldclock.core;
 
 import org.json.JSONObject;
 import okhttp3.OkHttpClient;

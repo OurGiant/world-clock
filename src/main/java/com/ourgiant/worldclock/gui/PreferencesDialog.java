@@ -1,4 +1,6 @@
-package com.ourgiant.worldclock;
+package com.ourgiant.worldclock.gui;
+
+import com.ourgiant.worldclock.core.PreferencesManager;
 
 import javax.swing.*;
 import java.awt.*;
