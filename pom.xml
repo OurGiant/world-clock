@@ -7,7 +7,7 @@
 
     <groupId>com.worldclock</groupId>
     <artifactId>worldclock</artifactId>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
     <packaging>jar</packaging>
 
     <name>World Clock</name>
@@ -103,6 +103,14 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!-- Without this, every test that saves/loads preferences would touch
+                             the real developer's ~/.worldclock on every mvn test run. See
+                             PreferencesManager.prefsDir(). -->
+                        <worldclock.prefsDir>${project.build.directory}/test-worldclock-prefs</worldclock.prefsDir>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
 
             <plugin>
