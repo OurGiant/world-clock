@@ -37,7 +37,7 @@ public class TimezoneCatalog {
                 "Australia/Brisbane",
                 "Pacific/Auckland",
                 "Pacific/Fiji",
-                "Brazil/São Paulo",
+                "America/Sao_Paulo",
                 "America/Mexico_City",
                 "America/Toronto"
         ));

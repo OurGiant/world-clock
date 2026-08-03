@@ -19,9 +19,12 @@ import java.util.List;
 public class PreferencesManager {
     private static final Logger logger = LoggerFactory.getLogger(PreferencesManager.class);
 
-    private static final Path PREFS_DIR = Paths.get(System.getProperty("user.home"), ".worldclock");
+    /** System property override for tests -- without it, every test that saves/loads
+     * preferences would touch the real developer's {@code ~/.worldclock} on every
+     * {@code mvn test} run. Set via pom.xml's surefire config to a build-directory-relative
+     * path, mirroring kiro-control-panel's {@code kiro.control.panel.changeLogFile} precedent. */
+    private static final String PREFS_DIR_OVERRIDE_PROPERTY = "worldclock.prefsDir";
     private static final String PREFS_FILE = "preferences.json";
-    private static final Path PREFS_PATH = PREFS_DIR.resolve(PREFS_FILE);
 
     private static final String[] DEFAULT_ZONES = {"America/New_York", "Europe/London", "Asia/Tokyo"};
     private static final String TIMEZONES_KEY = "timezones";
@@ -32,6 +35,18 @@ public class PreferencesManager {
     private static final String DEFAULT_API_KEY = "";
     private static final String DEFAULT_CURRENT_LOCATION = "38.8909853,-77.026671";
 
+    private static Path prefsDir() {
+        String override = System.getProperty(PREFS_DIR_OVERRIDE_PROPERTY);
+        if (override != null && !override.isBlank()) {
+            return Paths.get(override);
+        }
+        return Paths.get(System.getProperty("user.home"), ".worldclock");
+    }
+
+    private static Path prefsPath() {
+        return prefsDir().resolve(PREFS_FILE);
+    }
+
     /**
      * Load saved timezone preferences from file.
      * Returns default zones if file doesn't exist or is invalid.
@@ -40,8 +55,8 @@ public class PreferencesManager {
         List<String> zones = new ArrayList<>();
 
         try {
-            if (Files.exists(PREFS_PATH)) {
-                String content = Files.readString(PREFS_PATH);
+            if (Files.exists(prefsPath())) {
+                String content = Files.readString(prefsPath());
                 JSONObject json = new JSONObject(content);
 
                 if (json.has(TIMEZONES_KEY)) {
@@ -81,18 +96,18 @@ public class PreferencesManager {
     public static boolean saveTimeZonePreferences(List<String> timeZones) {
         try {
             // Create directory if it doesn't exist
-            Files.createDirectories(PREFS_DIR);
+            Files.createDirectories(prefsDir());
 
             // Create JSON object
             JSONObject json = new JSONObject();
             json.put(TIMEZONES_KEY, timeZones);
 
             // Write to file
-            Files.writeString(PREFS_PATH, json.toString(2));
+            Files.writeString(prefsPath(), json.toString(2));
             
             // Set restrictive file permissions (read/write for owner only)
             try {
-                Files.setPosixFilePermissions(PREFS_PATH, 
+                Files.setPosixFilePermissions(prefsPath(), 
                     java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"));
             } catch (UnsupportedOperationException e) {
                 // Windows doesn't support POSIX permissions, silently skip
@@ -110,7 +125,7 @@ public class PreferencesManager {
      * Get the preferences file path (useful for debugging/testing)
      */
     public static Path getPreferencesPath() {
-        return PREFS_PATH;
+        return prefsPath();
     }
 
     /**
@@ -119,8 +134,8 @@ public class PreferencesManager {
      */
     public static boolean loadDisplaySeconds() {
         try {
-            if (Files.exists(PREFS_PATH)) {
-                String content = Files.readString(PREFS_PATH);
+            if (Files.exists(prefsPath())) {
+                String content = Files.readString(prefsPath());
                 JSONObject json = new JSONObject(content);
 
                 if (json.has(DISPLAY_SECONDS_KEY)) {
@@ -140,8 +155,8 @@ public class PreferencesManager {
      */
     public static String loadApiNinjaKey() {
         try {
-            if (Files.exists(PREFS_PATH)) {
-                String content = Files.readString(PREFS_PATH);
+            if (Files.exists(prefsPath())) {
+                String content = Files.readString(prefsPath());
                 JSONObject json = new JSONObject(content);
 
                 if (json.has(API_NINJA_KEY)) {
@@ -161,8 +176,8 @@ public class PreferencesManager {
      */
     public static String loadCurrentLocation() {
         try {
-            if (Files.exists(PREFS_PATH)) {
-                String content = Files.readString(PREFS_PATH);
+            if (Files.exists(prefsPath())) {
+                String content = Files.readString(prefsPath());
                 JSONObject json = new JSONObject(content);
 
                 if (json.has(CURRENT_LOCATION)) {
@@ -183,7 +198,7 @@ public class PreferencesManager {
     public static boolean savePreferences(List<String> timeZones, boolean displaySeconds, String apiNinjaKey, String currentLocation) {
         try {
             // Create directory if it doesn't exist
-            Files.createDirectories(PREFS_DIR);
+            Files.createDirectories(prefsDir());
 
             // Create JSON object
             JSONObject json = new JSONObject();
@@ -193,11 +208,11 @@ public class PreferencesManager {
             json.put(CURRENT_LOCATION, currentLocation != null ? currentLocation : DEFAULT_CURRENT_LOCATION);
 
             // Write to file
-            Files.writeString(PREFS_PATH, json.toString(2));
+            Files.writeString(prefsPath(), json.toString(2));
             
             // Set restrictive file permissions (read/write for owner only)
             try {
-                Files.setPosixFilePermissions(PREFS_PATH, 
+                Files.setPosixFilePermissions(prefsPath(), 
                     java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"));
             } catch (UnsupportedOperationException e) {
                 // Windows doesn't support POSIX permissions, silently skip
