@@ -7,17 +7,24 @@ import com.ourgiant.worldclock.core.HolidayService;
 import com.ourgiant.worldclock.core.PreferencesManager;
 import com.ourgiant.worldclock.core.WeatherService;
 import com.ourgiant.worldclock.util.AppVersion;
+import com.ourgiant.worldclock.util.UpdateChecker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
+import java.net.URL;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Main entry point for the World Clock application.
  * Displays current time across multiple world zones using Swing.
  */
 public class WorldClockApp {
+    private static final Logger logger = LoggerFactory.getLogger(WorldClockApp.class);
+
     private DigitalClock utcClock;
     private List<DigitalClock> selectableClocks;
     private List<JComboBox<String>> timeZoneSelectors;
@@ -47,6 +54,8 @@ public class WorldClockApp {
         frame.setLocationRelativeTo(null);
         frame.setResizable(true);
         frame.setBackground(new Color(20, 20, 20));
+        setAppIcon();
+        frame.setJMenuBar(buildMenuBar());
 
         // Main panel
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
@@ -123,6 +132,65 @@ public class WorldClockApp {
 
         // Start timer to update clocks every second
         startClockUpdater();
+
+        checkForUpdateAndNotifyIfNewer();
+    }
+
+    private void setAppIcon() {
+        URL iconUrl = WorldClockApp.class.getResource("/app-icon.png");
+        if (iconUrl != null) {
+            frame.setIconImage(new ImageIcon(iconUrl).getImage());
+        }
+    }
+
+    private JMenuBar buildMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu helpMenu = new JMenu("Help");
+        JMenuItem checkForUpdates = new JMenuItem("Check for Updates...");
+        checkForUpdates.addActionListener(e -> new AboutDialog(frame).setVisible(true));
+        JMenuItem about = new JMenuItem("About");
+        about.addActionListener(e -> new AboutDialog(frame).setVisible(true));
+        helpMenu.add(checkForUpdates);
+        helpMenu.addSeparator();
+        helpMenu.add(about);
+
+        menuBar.add(helpMenu);
+        return menuBar;
+    }
+
+    /** Silent, non-blocking startup check — never surfaces an error, and only ever notifies about a given release once (PreferencesManager's dedup key). */
+    private void checkForUpdateAndNotifyIfNewer() {
+        SwingWorker<Optional<UpdateChecker.ReleaseInfo>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Optional<UpdateChecker.ReleaseInfo> doInBackground() {
+                return UpdateChecker.fetchLatestRelease();
+            }
+
+            @Override
+            protected void done() {
+                Optional<UpdateChecker.ReleaseInfo> release;
+                try {
+                    release = get();
+                } catch (Exception e) {
+                    logger.warn("Silent startup update check failed", e);
+                    return;
+                }
+                if (release.isEmpty()) {
+                    return;
+                }
+                UpdateChecker.ReleaseInfo info = release.get();
+                if (!UpdateChecker.isNewerVersion(info.version(), AppVersion.resolve())) {
+                    return;
+                }
+                if (info.version().equals(PreferencesManager.loadLastNotifiedUpdateVersion())) {
+                    return;
+                }
+                PreferencesManager.saveLastNotifiedUpdateVersion(info.version());
+                new AboutDialog(frame, info).setVisible(true);
+            }
+        };
+        worker.execute();
     }
 
     private JPanel createSelectableClockPanel(int index) {

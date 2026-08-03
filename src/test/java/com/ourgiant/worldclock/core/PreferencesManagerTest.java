@@ -99,4 +99,28 @@ class PreferencesManagerTest {
         assertEquals("", PreferencesManager.loadApiNinjaKey());
         assertEquals("38.8909853,-77.026671", PreferencesManager.loadCurrentLocation());
     }
+
+    @Test
+    void loadLastNotifiedUpdateVersionDefaultsToEmptyWhenUnset() {
+        assertEquals("", PreferencesManager.loadLastNotifiedUpdateVersion());
+    }
+
+    @Test
+    void saveThenLoadLastNotifiedUpdateVersionRoundTrips() {
+        assertTrue(PreferencesManager.saveLastNotifiedUpdateVersion("1.2.3"));
+        assertEquals("1.2.3", PreferencesManager.loadLastNotifiedUpdateVersion());
+    }
+
+    @Test
+    void saveLastNotifiedUpdateVersionDoesNotClobberOtherPreferences() {
+        List<String> zones = List.of("UTC", "America/Chicago", "Europe/Berlin");
+        assertTrue(PreferencesManager.savePreferences(zones, false, "test-api-key", "1.0,2.0"));
+
+        assertTrue(PreferencesManager.saveLastNotifiedUpdateVersion("2.0.0"));
+
+        assertEquals(zones, PreferencesManager.loadTimeZonePreferences());
+        assertFalse(PreferencesManager.loadDisplaySeconds());
+        assertEquals("test-api-key", PreferencesManager.loadApiNinjaKey());
+        assertEquals("2.0.0", PreferencesManager.loadLastNotifiedUpdateVersion());
+    }
 }
