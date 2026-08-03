@@ -5,6 +5,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -15,7 +17,9 @@ import java.util.*;
  * Requires API key to be set via setApiNinjaKey().
  */
 public class HolidayService {
-    
+
+    private static final Logger logger = LoggerFactory.getLogger(HolidayService.class);
+
     private static String apiNinjaKey = null;
     private static final OkHttpClient httpClient = new OkHttpClient();
     private static final long CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -135,24 +139,24 @@ public class HolidayService {
                         }
                     }
                     
-                    System.err.println("API Ninjas Holidays API returned " + code + " for " + countryCode);
-                    System.err.println("  URL: " + response.request().url());
+                    logger.warn("API Ninjas Holidays API returned {} for {}", code, countryCode);
+                    logger.warn("  URL: {}", response.request().url());
                     if (!errorBody.isEmpty()) {
-                        System.err.println("  Response: " + errorBody);
+                        logger.warn("  Response: {}", errorBody);
                     }
                     String rateLimitRemaining = response.header("X-RateLimit-Requests-Remaining");
                     if (rateLimitRemaining != null) {
-                        System.err.println("  Requests remaining: " + rateLimitRemaining);
+                        logger.warn("  Requests remaining: {}", rateLimitRemaining);
                     }
-                    
+
                     // Check if it's an auth issue (401, 403) or quota (400 with "premium" in message)
-                    if ((code == 401 || code == 403) || 
+                    if ((code == 401 || code == 403) ||
                         (code == 400 && errorBody.toLowerCase().contains("premium"))) {
-                        System.err.println("  Tip: This is a premium-only feature. Free tier returns current year only.");
-                        System.err.println("  Upgrade at https://www.api-ninjas.com/pricing for multiple years");
+                        logger.warn("  Tip: This is a premium-only feature. Free tier returns current year only.");
+                        logger.warn("  Upgrade at https://www.api-ninjas.com/pricing for multiple years");
                     }
-                    
-                    System.err.println("  Stopping retries to preserve API quota");
+
+                    logger.warn("  Stopping retries to preserve API quota");
                     return null;
                 }
                 
@@ -160,8 +164,8 @@ public class HolidayService {
                 // Network or parsing error - retry with backoff
                 if (attempt < MAX_RETRIES) {
                     long backoffMs = INITIAL_BACKOFF_MS * (long) Math.pow(2, attempt - 1);
-                    System.err.println("Holiday API attempt " + attempt + " failed: " + e.getMessage() + 
-                                     ". Retrying in " + (backoffMs / 1000) + "s...");
+                    logger.warn("Holiday API attempt {} failed: {}. Retrying in {}s...",
+                            attempt, e.getMessage(), backoffMs / 1000);
                     try {
                         Thread.sleep(backoffMs);
                     } catch (InterruptedException ie) {
@@ -169,7 +173,7 @@ public class HolidayService {
                         return null;
                     }
                 } else {
-                    System.err.println("Holiday API failed after " + MAX_RETRIES + " attempts: " + e.getMessage());
+                    logger.error("Holiday API failed after {} attempts: {}", MAX_RETRIES, e.getMessage());
                     return null;
                 }
             }

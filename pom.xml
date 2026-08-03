@@ -7,7 +7,7 @@
 
     <groupId>com.worldclock</groupId>
     <artifactId>worldclock</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <packaging>jar</packaging>
 
     <name>World Clock</name>
@@ -35,11 +35,52 @@
             <version>4.12.0</version>
         </dependency>
 
-        <!-- JUnit for testing -->
+        <!-- Logging -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.16</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+
+        <!-- FlatLaf - Modern Look and Feel with themes -->
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>3.7.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf-intellij-themes</artifactId>
+            <version>3.7.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf-extras</artifactId>
+            <version>3.7.2</version>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.11.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.23.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.23.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -56,6 +97,12 @@
                     <target>24</target>
                     <release>24</release>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
             </plugin>
 
             <plugin>

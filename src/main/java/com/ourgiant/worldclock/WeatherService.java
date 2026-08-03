@@ -4,6 +4,8 @@ import org.json.JSONObject;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.ZoneId;
 import java.util.HashMap;
@@ -14,7 +16,9 @@ import java.util.concurrent.TimeUnit;
  * Service for fetching weather data from Open-Meteo API (free, no API key required).
  */
 public class WeatherService {
-    
+
+    private static final Logger logger = LoggerFactory.getLogger(WeatherService.class);
+
     private static final String OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
     private static final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(5, TimeUnit.SECONDS)
@@ -133,7 +137,7 @@ public class WeatherService {
                 return data;
             }
         } catch (Exception e) {
-            System.err.println("Error fetching weather: " + e.getMessage());
+            logger.error("Error fetching weather: {}", e.getMessage());
             return null;
         }
     }
