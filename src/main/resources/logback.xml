@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!-- Kept deliberately: World Clock is a normal JFrame app (not tray-resident like
+         kiro-control-panel), so a user launching it from a terminal expects to see log
+         output there rather than have control silently return to the prompt. -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
