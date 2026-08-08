@@ -122,6 +122,26 @@ This app makes outbound HTTP calls to two third-party APIs:
 Neither service's key material is logged; `HolidayService` logs response
 bodies on error but truncates them to 200 characters.
 
+- **GitHub Releases** (`UpdateChecker`) — bare `GET` to the public
+  `api.github.com/repos/OurGiant/world-clock/releases/latest` endpoint, no
+  auth, no user data in the request. 5s connect / 10s read timeouts. A TLS
+  handshake failure is distinguished from a generic failure and surfaced
+  with a "possible corporate network proxy" message; any other failure or
+  non-2xx response is silent (`Optional.empty()`, logged at WARN). Before
+  the release URL from the response is opened in the user's browser,
+  `AboutDialog.isTrustedReleaseUrl` validates it's exactly
+  `https://github.com/...` — defense-in-depth against a tampered/MITM'd
+  API response.
+
+  **Accepted deviation:** the sibling-project standard specifies
+  `java.net.http.HttpClient` for this call; `UpdateChecker` here uses
+  OkHttp instead, matching `WeatherService`/`HolidayService` above. This
+  keeps World Clock on a single HTTP stack rather than splitting a
+  three-call surface across two libraries for no functional gain — all
+  three calls get the same timeout/retry/logging discipline either way.
+  Reassessed and confirmed 2026-08-08 (issue #20); not planned for
+  migration.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

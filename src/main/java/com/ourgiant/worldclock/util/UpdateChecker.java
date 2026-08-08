@@ -16,6 +16,9 @@ import java.util.Optional;
 /**
  * Checks GitHub's releases API for a newer World Clock version. Ported from doc-scrubber's /
  * kiro-control-panel's same feature, adapted to this project's okhttp + org.json stack.
+ * The sibling-project standard specifies {@code java.net.http.HttpClient} here; staying on
+ * OkHttp instead is a deliberate, accepted per-project exception — see README's "Hardening /
+ * outbound calls" section for the reasoning (reassessed in issue #20).
  */
 public final class UpdateChecker {
     private static final Logger logger = LoggerFactory.getLogger(UpdateChecker.class);
