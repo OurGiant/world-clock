@@ -20,6 +20,11 @@ public class HolidayService {
 
     private static final Logger logger = LoggerFactory.getLogger(HolidayService.class);
 
+    /** Overridable via system property so tests can point at a local MockWebServer instead of
+     * the real API, mirroring PreferencesManager's {@code worldclock.prefsDir} precedent. */
+    private static final String HOLIDAY_API_BASE_URL_OVERRIDE_PROPERTY = "worldclock.holidayApiBaseUrl";
+    private static final String DEFAULT_HOLIDAY_API_BASE_URL = "https://api.api-ninjas.com/v1/holidays";
+
     private static String apiNinjaKey = null;
     private static final OkHttpClient httpClient = new OkHttpClient();
     private static final long CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -78,6 +83,19 @@ public class HolidayService {
         return cachedResult;
     }
     
+    private static String holidayApiBaseUrl() {
+        String override = System.getProperty(HOLIDAY_API_BASE_URL_OVERRIDE_PROPERTY);
+        return (override != null && !override.isBlank()) ? override : DEFAULT_HOLIDAY_API_BASE_URL;
+    }
+
+    /**
+     * Clear the holiday cache (both success and failure entries).
+     */
+    public static void clearCache() {
+        holidayCache.clear();
+        apiCacheTime.clear();
+    }
+
     private static boolean isCached(String country) {
         if (!apiCacheTime.containsKey(country)) {
             return false;
@@ -102,8 +120,8 @@ public class HolidayService {
                 // Build URL without year parameter (free tier limitation)
                 // Free tier defaults to current year, premium tier needs year parameter
                 String url = String.format(
-                    "https://api.api-ninjas.com/v1/holidays?country=%s&type=public_holiday",
-                    countryCode
+                    "%s?country=%s&type=public_holiday",
+                    holidayApiBaseUrl(), countryCode
                 );
                 
                 Request request = new Request.Builder()

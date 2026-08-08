@@ -19,7 +19,10 @@ public class WeatherService {
 
     private static final Logger logger = LoggerFactory.getLogger(WeatherService.class);
 
-    private static final String OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
+    /** Overridable via system property so tests can point at a local MockWebServer instead of
+     * the real API, mirroring PreferencesManager's {@code worldclock.prefsDir} precedent. */
+    private static final String OPEN_METEO_URL_OVERRIDE_PROPERTY = "worldclock.weatherApiBaseUrl";
+    private static final String DEFAULT_OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
     private static final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(5, TimeUnit.SECONDS)
             .readTimeout(5, TimeUnit.SECONDS)
@@ -83,6 +86,11 @@ public class WeatherService {
         }
     }
     
+    private static String openMeteoBaseUrl() {
+        String override = System.getProperty(OPEN_METEO_URL_OVERRIDE_PROPERTY);
+        return (override != null && !override.isBlank()) ? override : DEFAULT_OPEN_METEO_URL;
+    }
+
     /**
      * Fetch weather for a given timezone
      * @param zoneId The timezone to get weather for
@@ -110,7 +118,7 @@ public class WeatherService {
             
             String url = String.format(
                 "%s?latitude=%.2f&longitude=%.2f&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m&timezone=%s",
-                OPEN_METEO_URL, latitude, longitude, zoneId.getId()
+                openMeteoBaseUrl(), latitude, longitude, zoneId.getId()
             );
             
             Request request = new Request.Builder()
