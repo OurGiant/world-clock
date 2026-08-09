@@ -15,16 +15,20 @@ actually type for *this* project.
 Maven only exists in the Docker container, not on the host:
 
 ```bash
-docker exec festive_bardeen bash -c "cd /projects/world-clock && mvn -q package -DskipTests"
+docker exec festive_bardeen bash -c "cd /projects/OHI/world-clock && mvn -q package -DskipTests"
 ```
 
 If `festive_bardeen` doesn't respond, find the current container:
 `docker ps -a --format '{{.Names}} {{.Status}} {{.Image}}'` and
 `docker start <name>` if stopped — the name can drift across sessions.
+The `/projects/OHI/` path segment can also drift (confirmed changed at
+least once already, from a flat `/projects/<name>`) — if `cd` fails with
+"No such file or directory", run `docker exec festive_bardeen ls /projects`
+to find the current layout.
 If a build seems to ignore a just-made edit, suspect bind-mount cache
 staleness before suspecting your own change — confirm with
-`docker exec festive_bardeen grep <marker> /projects/world-clock/<path>`,
-and force a sync with `docker cp <file> festive_bardeen:/projects/world-clock/<path>`
+`docker exec festive_bardeen grep <marker> /projects/OHI/world-clock/<path>`,
+and force a sync with `docker cp <file> festive_bardeen:/projects/OHI/world-clock/<path>`
 if it's actually stale (seen on both `pom.xml` and `.java` edits).
 
 `/projects` is bind-mounted from the host's `~/projects`, so the jar lands

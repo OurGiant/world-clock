@@ -8,7 +8,9 @@ description: The standard workflow for shipping a bug fix or feature to World Cl
 Follow `java-swing-ship-issue` (the generic workflow shared across the
 Java Swing project family) with these World Clock specifics:
 
-- **Project path**: `/projects/world-clock` inside the build container.
+- **Project path**: `/projects/OHI/world-clock` inside the build container
+  (the `OHI/` segment has drifted before — see this repo's own
+  `.claude/skills/verify/SKILL.md` for the fallback if `cd` fails).
 - **Verify**: use this repo's own `.claude/skills/verify/SKILL.md` for
   build/launch mechanics, including this host's shared-desktop screenshot
   caveat.
