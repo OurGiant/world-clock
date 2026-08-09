@@ -16,6 +16,8 @@ live weather and today's public holiday for that zone.
       key, and current location
 - [x] Preferences persisted to `~/.worldclock/preferences.json`
 - [x] FlatLaf dark theme
+- [x] Help > About dialog with version display, plus a manual and a
+      silent-on-startup update check against GitHub Releases
 
 ## Project Setup
 
@@ -60,20 +62,35 @@ world-clock/
 │   │   │   │   ├── TimezoneUtil.java
 │   │   │   │   └── WeatherService.java
 │   │   │   ├── gui/                   all Swing UI
+│   │   │   │   ├── AboutDialog.java
 │   │   │   │   ├── DigitalClock.java
 │   │   │   │   ├── PreferencesDialog.java
 │   │   │   │   ├── TimeZoneSelector.java
 │   │   │   │   └── WorldClockApp.java (entry point)
 │   │   │   └── util/
-│   │   │       └── AppVersion.java
+│   │   │       ├── AppVersion.java
+│   │   │       ├── NetworkFetchException.java
+│   │   │       └── UpdateChecker.java
 │   │   └── resources/
 │   │       ├── logback.xml
 │   │       └── version.properties     filtered at build time
+│   ├── packaging/                     jpackage assets, see below
+│   │   ├── app-icon.ico               Windows
+│   │   ├── app-icon.icns              macOS
+│   │   └── linux/                     .desktop, icon, postinst/prerm
 │   └── test/
-│       └── java/com/ourgiant/worldclock/core/
-│           ├── PreferencesManagerTest.java
-│           ├── TimezoneCatalogTest.java
-│           └── TimezoneUtilTest.java
+│       └── java/com/ourgiant/worldclock/
+│           ├── core/
+│           │   ├── HolidayServiceTest.java
+│           │   ├── PreferencesManagerTest.java
+│           │   ├── TimezoneCatalogTest.java
+│           │   ├── TimezoneUtilTest.java
+│           │   └── WeatherServiceTest.java
+│           ├── gui/
+│           │   └── AboutDialogTest.java
+│           └── util/
+│               └── UpdateCheckerTest.java
+├── .github/workflows/build.yml        CI build + jpackage release matrix
 ├── .claude/skills/                    verify + ship-issue workflow docs
 ├── pom.xml
 └── README.md
@@ -86,9 +103,10 @@ world-clock/
 
 - **[FlatLaf](https://www.formdev.com/flatlaf/)** (+ `flatlaf-intellij-themes`, `flatlaf-extras`) — look and feel
 - **[SLF4J](https://www.slf4j.org/) + [Logback](https://logback.qos.ch/)** — logging (console + rolling file under `~/.worldclock/logs`)
-- **[OkHttp](https://square.github.io/okhttp/)** — HTTP client for the weather/holiday APIs
+- **[OkHttp](https://square.github.io/okhttp/)** — HTTP client for the weather/holiday APIs and the GitHub Releases update check
 - **[org.json](https://github.com/stleary/JSON-java)** — JSON parsing
 - **JUnit 5 + Mockito** (test scope) — testing
+- **[OkHttp MockWebServer](https://github.com/square/okhttp/tree/master/mockwebserver)** (test scope) — mocks the HTTP layer for `HolidayServiceTest`/`WeatherServiceTest`
 
 ## Configuration
 
